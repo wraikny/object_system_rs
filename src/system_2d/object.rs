@@ -15,14 +15,6 @@ pub struct Object2D {
     components : Vec<Box<Component<Object2DCore>>>,
 }
 
-impl Object2D {
-    pub fn add_component<C>(&mut self, component : C)
-        where C : Component<Object2DCore> + 'static
-    {
-        self.components.push(Box::new(component));
-    }
-}
-
 impl<TComp> ObjectSystem<Object2DCore, TComp> for Object2D
     where TComp : Component<Object2DCore> + 'static
 {
@@ -43,6 +35,4 @@ impl<TComp> ObjectSystem<Object2DCore, TComp> for Object2D
 
 impl<TComp> Object<Object2DCore, TComp> for Object2D
     where TComp : Component<Object2DCore> + 'static
-{
-
-}
+{}
