@@ -1,9 +1,11 @@
-use super::super::object_system::{
-    Component,
-    CoreSystem,
-    ObjectSystem,
-    Layer,
-    Scene,
+use std::{cell::RefCell, rc::Rc};
+
+use super::{
+    object_system::{self, Component, CoreSystem, HasComponent},
+    system_2d::{
+        layer::{Layer2D},
+        object::{Object2D},
+    },
 };
 
 pub struct SceneCore;
@@ -12,43 +14,38 @@ impl CoreSystem for SceneCore {
 }
 
 pub struct Scene {
-    core : SceneCore,
-    components : Vec<Box<Component<SceneCore>>>,
-    layers : Vec<Box<Layer>>
+    core: Rc<RefCell<SceneCore>>,
+    components: Vec<Rc<RefCell<Component<SceneCore>>>>,
+    layers2d: Vec<Box<Layer2D>>,
 }
 
-
-impl<TComp> ObjectSystem<SceneCore, TComp> for Scene
-    where TComp : Component<SceneCore> + 'static
-{
-    fn core(&mut self) -> &mut SceneCore {
-        &mut self.core
-    }
-
-    fn components(&mut self) -> Vec<Box<TComp>> {
-        self.components
-    }
-
-    fn update_components(&mut self) {
-        for c in &mut self.components {
-            c.on_update(&mut self.core);
+impl Scene {
+    pub fn new() -> Scene {
+        Scene {
+            core: Rc::new(RefCell::new(SceneCore)),
+            components: Vec::new(),
+            layers2d: Vec::new(),
         }
     }
 }
 
-impl<TComp, TLayerCore, TLayerComp, TLayer, TObjCore, TObjComp, TObj>
-Scene<SceneCore, TComp, TLayerCore, TLayerComp, TLayer, TObjCore, TObjComp, TObj>
-for Scene
-    where
-        TComp : Component<TCore> + 'static,
-        TLayerCore : CoreSystem,
-        TLayerComp : Component<TLayerCore> + 'static,
-        TLayer : Layer<TLayerCore, TLayerComp, TObjCore, TObjComp, TObj>,
-        TObjCore : CoreSystem,
-        TObjComp : Component<TObjCore> + 'static,
-        TObj : Object<TObjCore, TObjComp>
+
+impl<TComp> HasComponent<SceneCore, TComp> for Scene
+where
+    TComp: Component<SceneCore> + 'static,
 {
-    fn layers(&mut self) -> &mut Vec<impl Layer> {
-        &mut self.layers
+    fn core(&self) -> Rc<RefCell<SceneCore>> {
+        self.core.clone()
+    }
+
+    fn components(&mut self) -> &mut Vec<Rc<RefCell<Component<SceneCore>>>> {
+        &mut self.components
     }
 }
+
+impl object_system::Scene<Layer2D, Object2D> for Scene {
+    fn layers(&mut self) -> &mut Vec<Box<Layer2D>> {
+        &mut self.layers2d
+    }
+}
+

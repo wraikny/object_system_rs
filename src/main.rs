@@ -1,3 +1,4 @@
+extern crate objectsystem_test;
+
 fn main() {
-    println!("Hello, world!");
 }

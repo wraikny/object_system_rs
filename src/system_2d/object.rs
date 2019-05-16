@@ -1,11 +1,6 @@
 use std::{cell::RefCell, rc::Rc};
 
-use super::super::object_system::{
-    CoreSystem,
-    ObjectSystem,
-    Component,
-    Object,
-};
+use super::super::object_system::{Component, CoreSystem, HasComponent, Object};
 
 pub struct Object2DCore;
 impl CoreSystem for Object2DCore {
@@ -13,12 +8,22 @@ impl CoreSystem for Object2DCore {
 }
 
 pub struct Object2D {
-    core : Rc<RefCell<Object2DCore>>,
-    components : Vec<Rc<RefCell<Component<Object2DCore>>>>,
+    core: Rc<RefCell<Object2DCore>>,
+    components: Vec<Rc<RefCell<Component<Object2DCore>>>>,
 }
 
-impl<TComp> ObjectSystem<Object2DCore, TComp> for Object2D
-    where TComp : Component<Object2DCore> + 'static
+impl Object2D {
+    pub fn new() -> Object2D {
+        Object2D {
+            core: Rc::new(RefCell::new(Object2DCore)),
+            components: Vec::new(),
+        }
+    }
+}
+
+impl<TComp> HasComponent<Object2DCore, TComp> for Object2D
+where
+    TComp: Component<Object2DCore> + 'static,
 {
     fn core(&self) -> Rc<RefCell<Object2DCore>> {
         self.core.clone()
@@ -29,6 +34,4 @@ impl<TComp> ObjectSystem<Object2DCore, TComp> for Object2D
     }
 }
 
-impl<TComp> Object<Object2DCore, TComp> for Object2D
-    where TComp : Component<Object2DCore> + 'static
-{}
+impl Object for Object2D {}

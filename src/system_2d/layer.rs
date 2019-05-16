@@ -1,8 +1,8 @@
 use std::{cell::RefCell, rc::Rc};
 
-use super::super::object_system::{Component, CoreSystem, Layer, ObjectSystem};
+use super::super::object_system::{Component, CoreSystem, Layer, HasComponent};
 
-use super::object::{Object2D, Object2DCore};
+use super::object::{Object2D};
 
 pub struct Layer2DCore;
 impl CoreSystem for Layer2DCore {
@@ -12,10 +12,20 @@ impl CoreSystem for Layer2DCore {
 pub struct Layer2D {
     core: Rc<RefCell<Layer2DCore>>,
     components: Vec<Rc<RefCell<Component<Layer2DCore>>>>,
-    objects: Vec<Object2D>,
+    objects: Vec<Box<Object2D>>,
 }
 
-impl<TComp> ObjectSystem<Layer2DCore, TComp> for Layer2D
+impl Layer2D {
+   pub fn new() -> Layer2D {
+        Layer2D {
+            core: Rc::new(RefCell::new(Layer2DCore)),
+            components: Vec::new(),
+            objects: Vec::new(),
+        }
+    }
+}
+
+impl<TComp> HasComponent<Layer2DCore, TComp> for Layer2D
 where
     TComp: Component<Layer2DCore> + 'static,
 {
@@ -28,12 +38,8 @@ where
     }
 }
 
-impl<TComp, TObjComp> Layer<Layer2DCore, TComp, Object2DCore, TObjComp, Object2D> for Layer2D
-where
-    TComp: Component<Layer2DCore> + 'static,
-    TObjComp: Component<Object2DCore> + 'static,
-{
-    fn objects(&mut self) -> &mut Vec<Object2D> {
+impl Layer<Object2D> for Layer2D {
+    fn objects(&mut self) -> &mut Vec<Box<Object2D>> {
         &mut self.objects
     }
 }
