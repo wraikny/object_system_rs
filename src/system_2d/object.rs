@@ -12,6 +12,7 @@ impl Object2DCore {
         Object2DCore { count: 0 }
     }
 }
+
 impl CoreSystem for Object2DCore {
     fn update(&mut self) {}
 }
