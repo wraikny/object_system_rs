@@ -1,7 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
 use super::{
-    object_system::{self, Component, CoreSystem, HasComponent},
+    object_system::{self, Component, CoreSystem, HasComponent, HasComponentInner, SceneInner},
     system_2d::{
         layer::{Layer2D},
         object::{Object2D},
@@ -27,6 +27,12 @@ impl Scene {
             layers2d: Vec::new(),
         }
     }
+
+    crate fn update(&mut self) {
+        self.update_core();
+        self.update_components();
+        self.update_layers();
+    }
 }
 
 
@@ -45,4 +51,3 @@ impl object_system::Scene<Layer2D, Object2D> for Scene {
         &mut self.layers2d
     }
 }
-

@@ -1,7 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
 use super::super::{
-    object_system::{Component, HasComponent, Layer, Scene, SceneInner},
+    object_system::{Component, HasComponent, Layer, Scene},
     scene::{self, SceneCore},
     system_2d::{
         layer::{Layer2D, Layer2DCore},
@@ -60,6 +60,6 @@ fn updating() {
     }
 
     for _ in 0..100 {
-        scene.update_layers();
+        scene.update();
     }
 }
