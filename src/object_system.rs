@@ -28,7 +28,6 @@ where
         self.core().borrow_mut().update();
     }
 
-    //fn update_components(&mut self);
     fn update_components(&mut self) {
         let core = self.core();
         for c in self.components() {
@@ -74,8 +73,7 @@ where
     }
 }
 
-crate trait LayerInner<TCore, TObjCore, TObj>:
-    Layer<TObj> + HasComponentInner<TCore>
+crate trait LayerInner<TCore, TObjCore, TObj>: Layer<TObj> + HasComponentInner<TCore>
 where
     TCore: CoreSystem,
     TObjCore: CoreSystem,
@@ -95,8 +93,7 @@ where
     }
 }
 
-impl<T, TCore, TObjCore, TObj> LayerInner<TCore, TObjCore, TObj>
-    for T
+impl<T, TCore, TObjCore, TObj> LayerInner<TCore, TObjCore, TObj> for T
 where
     T: Layer<TObj> + HasComponentInner<TCore>,
     TCore: CoreSystem,
@@ -134,8 +131,8 @@ where
     }
 }
 
-impl<TCore, TLyCore, TLayer, TObjCore, TObj, T>
-    SceneInner<TCore, TLyCore, TLayer, TObjCore, TObj> for T
+impl<TCore, TLyCore, TLayer, TObjCore, TObj, T> SceneInner<TCore, TLyCore, TLayer, TObjCore, TObj>
+    for T
 where
     T: Scene<TLayer, TObj> + HasComponentInner<TCore>,
     TCore: CoreSystem,
