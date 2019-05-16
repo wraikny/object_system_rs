@@ -7,27 +7,31 @@ use super::super::{
         layer::{Layer2D, Layer2DCore},
         object::{Object2D, Object2DCore},
     },
+    system_3d::{
+        layer::{Layer3D, Layer3DCore},
+        object::{Object3D, Object3DCore},
+    },
 
 };
 
-struct ObjectComponent {
+struct Object2DComponent {
     count: i32,
 }
 
-impl ObjectComponent {
+impl Object2DComponent {
     fn new() -> Self {
-        ObjectComponent { count: 0 }
+        Object2DComponent { count: 0 }
     }
 }
-impl Component<Object2DCore> for ObjectComponent {
+impl Component<Object2DCore> for Object2DComponent {
     fn on_update(&mut self, core: Rc<RefCell<Object2DCore>>) {
         self.count += 1;
         core.borrow_mut().count += 1;
     }
 }
 
-struct LayerComponent;
-impl Component<Layer2DCore> for LayerComponent {}
+struct Layer2DComponent;
+impl Component<Layer2DCore> for Layer2DComponent {}
 
 struct SceneComponent;
 impl Component<SceneCore> for SceneComponent {}
@@ -40,36 +44,50 @@ fn updating() {
         scene.add_component(Rc::new(RefCell::new(comp1)));
     }
     {
-        let mut layer1 = Layer2D::new();
+        let mut layer = Layer2D::new();
         {
-            let comp1 = LayerComponent;
-            let comp2 = LayerComponent;
-            layer1.add_component(Rc::new(RefCell::new(comp1)));
-            layer1.add_component(Rc::new(RefCell::new(comp2)));
+            let comp1 = Layer2DComponent;
+            let comp2 = Layer2DComponent;
+            layer.add_component(Rc::new(RefCell::new(comp1)));
+            layer.add_component(Rc::new(RefCell::new(comp2)));
         }
         {
             let mut object1 = Object2D::new();
             {
-                let comp1 = ObjectComponent::new();
-                let comp2 = ObjectComponent::new();
+                let comp1 = Object2DComponent::new();
+                let comp2 = Object2DComponent::new();
                 object1.add_component(Rc::new(RefCell::new(comp1)));
                 object1.add_component(Rc::new(RefCell::new(comp2)));
             }
             let object2 = Object2D::new();
-            layer1.add_object(object1);
-            layer1.add_object(object2);
+            layer.add_object(object1);
+            layer.add_object(object2);
         }
+        scene.add_layer(layer);
+    }
+    {
 
-        let mut layer2 = Layer2D::new();
+        let mut layer = Layer2D::new();
         {
             let object1 = Object2D::new();
             let object2 = Object2D::new();
-            layer2.add_object(object1);
-            layer2.add_object(object2);
+            layer.add_object(object1);
+            layer.add_object(object2);
         }
 
-        scene.add_layer(layer1);
-        scene.add_layer(layer2);
+        scene.add_layer(layer);
+    }
+    {
+
+        let mut layer = Layer3D::new();
+        {
+            let object1 = Object3D::new();
+            let object2 = Object3D::new();
+            layer.add_object(object1);
+            layer.add_object(object2);
+        }
+
+        scene.add_layer(layer);
     }
 
     for _ in 0..100 {
