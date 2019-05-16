@@ -13,6 +13,10 @@ impl Object2DCore {
     }
 }
 
+impl Drop for Object2DCore {
+    fn drop(&mut self) {}
+}
+
 impl CoreSystem for Object2DCore {
     fn update(&mut self) {}
 }

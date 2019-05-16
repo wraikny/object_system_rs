@@ -7,8 +7,13 @@ use super::{
 
 // 擬似的なstruct
 pub struct SceneCore;
+
 impl CoreSystem for SceneCore {
     fn update(&mut self) {}
+}
+
+impl Drop for SceneCore {
+    fn drop(&mut self) {}
 }
 
 pub struct Scene {

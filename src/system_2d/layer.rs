@@ -1,13 +1,18 @@
 use std::{cell::RefCell, rc::Rc};
 
-use super::super::object_system::{Component, CoreSystem, Layer, HasComponent};
+use super::super::object_system::{Component, CoreSystem, HasComponent, Layer};
 
-use super::object::{Object2D};
+use super::object::Object2D;
 
 // 擬似的なstruct
 pub struct Layer2DCore;
+
 impl CoreSystem for Layer2DCore {
     fn update(&mut self) {}
+}
+
+impl Drop for Layer2DCore {
+    fn drop(&mut self) {}
 }
 
 pub struct Layer2D {
@@ -17,7 +22,7 @@ pub struct Layer2D {
 }
 
 impl Layer2D {
-   pub fn new() -> Layer2D {
+    pub fn new() -> Layer2D {
         Layer2D {
             core: Rc::new(RefCell::new(Layer2DCore)),
             components: Vec::new(),
