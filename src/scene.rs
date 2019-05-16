@@ -2,12 +2,10 @@ use std::{cell::RefCell, rc::Rc};
 
 use super::{
     object_system::{self, Component, CoreSystem, HasComponent, HasComponentInner, SceneInner},
-    system_2d::{
-        layer::{Layer2D},
-        object::{Object2D},
-    },
+    system_2d::{layer::Layer2D, object::Object2D},
 };
 
+// 擬似的なstruct
 pub struct SceneCore;
 impl CoreSystem for SceneCore {
     fn update(&mut self) {}

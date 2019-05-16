@@ -2,6 +2,7 @@ use std::{cell::RefCell, rc::Rc};
 
 use super::super::object_system::{Component, CoreSystem, HasComponent, Object};
 
+// 擬似的なstruct
 pub struct Object2DCore;
 impl CoreSystem for Object2DCore {
     fn update(&mut self) {}

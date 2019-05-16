@@ -4,6 +4,7 @@ use super::super::object_system::{Component, CoreSystem, Layer, HasComponent};
 
 use super::object::{Object2D};
 
+// 擬似的なstruct
 pub struct Layer2DCore;
 impl CoreSystem for Layer2DCore {
     fn update(&mut self) {}
