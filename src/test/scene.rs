@@ -1,3 +1,5 @@
+use std::{cell::RefCell, rc::Rc};
+
 use super::super::{
     object_system::{Component, HasComponent, Layer, Scene, SceneInner},
     scene::{self, SceneCore},
@@ -19,31 +21,26 @@ impl Component<SceneCore> for SceneComponent {}
 
 #[test]
 fn updating() {
-    updating_impl::<SceneComponent, LayerComponent, ObjectComponent>();
-}
-
-fn updating_impl<TComp, TLyComp, TObjComp>()
-where
-    TComp: Component<SceneCore> + 'static,
-    TLyComp: Component<Layer2DCore> + 'static,
-    TObjComp: Component<Object2DCore> + 'static,
-{
-    let mut sample_scene = scene::Scene::new();
+    let mut scene = scene::Scene::new();
+    {
+        let comp1 = SceneComponent;
+        scene.add_component(Rc::new(RefCell::new(comp1)));
+    }
     {
         let mut layer1 = Layer2D::new();
         {
             let comp1 = LayerComponent;
             let comp2 = LayerComponent;
-            layer1.add_component(comp1);
-            layer1.add_component(comp2);
+            layer1.add_component(Rc::new(RefCell::new(comp1)));
+            layer1.add_component(Rc::new(RefCell::new(comp2)));
         }
         {
             let mut object1 = Object2D::new();
             {
                 let comp1 = ObjectComponent;
                 let comp2 = ObjectComponent;
-                object1.add_component(comp1);
-                object1.add_component(comp2);
+                object1.add_component(Rc::new(RefCell::new(comp1)));
+                object1.add_component(Rc::new(RefCell::new(comp2)));
             }
             let object2 = Object2D::new();
             layer1.add_object(object1);
@@ -58,10 +55,10 @@ where
             layer2.add_object(object2);
         }
 
-        sample_scene.add_layer(layer1);
-        sample_scene.add_layer(layer2);
+        scene.add_layer(layer1);
+        scene.add_layer(layer2);
     }
-    let scene = (&mut sample_scene) as (&mut SceneInner<_, TComp, _, TLyComp, _, _, TObjComp, _>);
+
     for _ in 0..100 {
         scene.update_layers();
     }

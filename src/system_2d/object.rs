@@ -21,10 +21,7 @@ impl Object2D {
     }
 }
 
-impl<TComp> HasComponent<Object2DCore, TComp> for Object2D
-where
-    TComp: Component<Object2DCore> + 'static,
-{
+impl HasComponent<Object2DCore> for Object2D {
     fn core(&self) -> Rc<RefCell<Object2DCore>> {
         self.core.clone()
     }

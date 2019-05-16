@@ -8,23 +8,21 @@ pub trait Component<T> {
     fn on_update(&mut self, _core: Rc<RefCell<T>>) {}
 }
 
-pub trait HasComponent<TCore, TComp>
+pub trait HasComponent<TCore>
 where
     TCore: CoreSystem,
-    TComp: Component<TCore> + 'static,
 {
     fn core(&self) -> Rc<RefCell<TCore>>;
     fn components(&mut self) -> &mut Vec<Rc<RefCell<Component<TCore>>>>;
 
-    fn add_component(&mut self, component: TComp) {
-        self.components().push(Rc::new(RefCell::new(component)));
+    fn add_component(&mut self, component: Rc<RefCell<Component<TCore>>>) {
+        self.components().push(component);
     }
 }
 
-crate trait HasComponentInner<TCore, TComp>: HasComponent<TCore, TComp>
+crate trait HasComponentInner<TCore>: HasComponent<TCore>
 where
     TCore: CoreSystem,
-    TComp: Component<TCore> + 'static,
 {
     fn update_core(&self) {
         self.core().borrow_mut().update();
@@ -39,21 +37,18 @@ where
     }
 }
 
-impl<T, TCore, TComp> HasComponentInner<TCore, TComp> for T
+impl<T, TCore> HasComponentInner<TCore> for T
 where
-    T: HasComponent<TCore, TComp>,
+    T: HasComponent<TCore>,
     TCore: CoreSystem,
-    TComp: Component<TCore> + 'static,
 {
 }
 
 pub trait Object {}
 
-crate trait ObjectInner<TCore, TComp>:
-    Object + HasComponentInner<TCore, TComp>
+crate trait ObjectInner<TCore>: Object + HasComponentInner<TCore>
 where
     TCore: CoreSystem,
-    TComp: Component<TCore> + 'static,
 {
     fn update(&mut self) {
         self.update_core();
@@ -61,12 +56,12 @@ where
     }
 }
 
-impl<T, TCore, TComp> ObjectInner<TCore, TComp> for T
+impl<T, TCore> ObjectInner<TCore> for T
 where
-    T: Object + HasComponentInner<TCore, TComp>,
+    T: Object + HasComponentInner<TCore>,
     TCore: CoreSystem,
-    TComp: Component<TCore> + 'static,
-{}
+{
+}
 
 pub trait Layer<TObj>
 where
@@ -79,14 +74,12 @@ where
     }
 }
 
-crate trait LayerInner<TCore, TComp, TObjCore, TObjComp, TObj>:
-    Layer<TObj> + HasComponentInner<TCore, TComp>
+crate trait LayerInner<TCore, TObjCore, TObj>:
+    Layer<TObj> + HasComponentInner<TCore>
 where
     TCore: CoreSystem,
-    TComp: Component<TCore> + 'static,
     TObjCore: CoreSystem,
-    TObjComp: Component<TObjCore> + 'static,
-    TObj: ObjectInner<TObjCore, TObjComp> + 'static,
+    TObj: ObjectInner<TObjCore> + 'static,
 {
     fn update_objects(&mut self) {
         let objects = self.objects();
@@ -102,16 +95,13 @@ where
     }
 }
 
-impl<T, TCore, TComp, TObjCore, TObjComp, TObj>
-    LayerInner<TCore, TComp, TObjCore, TObjComp, TObj>
+impl<T, TCore, TObjCore, TObj> LayerInner<TCore, TObjCore, TObj>
     for T
 where
-    T: Layer<TObj> + HasComponentInner<TCore, TComp>,
+    T: Layer<TObj> + HasComponentInner<TCore>,
     TCore: CoreSystem,
-    TComp: Component<TCore> + 'static,
     TObjCore: CoreSystem,
-    TObjComp: Component<TObjCore> + 'static,
-    TObj: ObjectInner<TObjCore, TObjComp> + 'static,
+    TObj: ObjectInner<TObjCore> + 'static,
 {
 }
 
@@ -127,17 +117,14 @@ where
     }
 }
 
-crate trait SceneInner<TCore, TComp, TLyCore, TLyComp, TLayer, TObjCore, TObjComp, TObj>:
-    Scene<TLayer, TObj> + HasComponentInner<TCore, TComp>
+crate trait SceneInner<TCore, TLyCore, TLayer, TObjCore, TObj>:
+    Scene<TLayer, TObj> + HasComponentInner<TCore>
 where
     TCore: CoreSystem,
-    TComp: Component<TCore> + 'static,
     TLyCore: CoreSystem,
-    TLyComp: Component<TLyCore> + 'static,
-    TLayer: LayerInner<TLyCore, TLyComp, TObjCore, TObjComp, TObj>,
+    TLayer: LayerInner<TLyCore, TObjCore, TObj>,
     TObjCore: CoreSystem,
-    TObjComp: Component<TObjCore> + 'static,
-    TObj: ObjectInner<TObjCore, TObjComp> + 'static,
+    TObj: ObjectInner<TObjCore> + 'static,
 {
     fn update_layers(&mut self) {
         let layers = self.layers();
@@ -147,17 +134,14 @@ where
     }
 }
 
-impl<TCore, TComp, TLyCore, TLyComp, TLayer, TObjCore, TObjComp, TObj, T>
-    SceneInner<TCore, TComp, TLyCore, TLyComp, TLayer, TObjCore, TObjComp, TObj>
-    for T
+impl<TCore, TLyCore, TLayer, TObjCore, TObj, T>
+    SceneInner<TCore, TLyCore, TLayer, TObjCore, TObj> for T
 where
-    T: Scene<TLayer, TObj> + HasComponentInner<TCore, TComp>,
+    T: Scene<TLayer, TObj> + HasComponentInner<TCore>,
     TCore: CoreSystem,
-    TComp: Component<TCore> + 'static,
     TLyCore: CoreSystem,
-    TLyComp: Component<TLyCore> + 'static,
-    TLayer: LayerInner<TLyCore, TLyComp, TObjCore, TObjComp, TObj>,
+    TLayer: LayerInner<TLyCore, TObjCore, TObj>,
     TObjCore: CoreSystem,
-    TObjComp: Component<TObjCore> + 'static,
-    TObj: ObjectInner<TObjCore, TObjComp> + 'static,
-{}
+    TObj: ObjectInner<TObjCore> + 'static,
+{
+}

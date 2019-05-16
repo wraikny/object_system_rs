@@ -25,10 +25,7 @@ impl Layer2D {
     }
 }
 
-impl<TComp> HasComponent<Layer2DCore, TComp> for Layer2D
-where
-    TComp: Component<Layer2DCore> + 'static,
-{
+impl HasComponent<Layer2DCore> for Layer2D {
     fn core(&self) -> Rc<RefCell<Layer2DCore>> {
         self.core.clone()
     }

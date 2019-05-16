@@ -30,10 +30,7 @@ impl Scene {
 }
 
 
-impl<TComp> HasComponent<SceneCore, TComp> for Scene
-where
-    TComp: Component<SceneCore> + 'static,
-{
+impl HasComponent<SceneCore> for Scene {
     fn core(&self) -> Rc<RefCell<SceneCore>> {
         self.core.clone()
     }
