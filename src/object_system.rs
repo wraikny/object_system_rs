@@ -96,4 +96,10 @@ where
             layer.update();
         }
     }
+
+    fn update(&mut self) {
+        self.update_core();
+        self.update_components();
+        self.update_layers();
+    }
 }
