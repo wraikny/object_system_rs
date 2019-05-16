@@ -1,11 +1,8 @@
-use super::super::object_system::{
-    Component,
-    CoreSystem,
-    ObjectSystem,
-    Layer,
-};
+use std::{cell::RefCell, rc::Rc};
 
-use super::object::{Object2DCore, Object2D};
+use super::super::object_system::{Component, CoreSystem, Layer, ObjectSystem};
+
+use super::object::{Object2D, Object2DCore};
 
 pub struct Layer2DCore;
 impl CoreSystem for Layer2DCore {
@@ -13,33 +10,28 @@ impl CoreSystem for Layer2DCore {
 }
 
 pub struct Layer2D {
-    core : Layer2DCore,
-    components : Vec<Box<Component<Layer2DCore>>>,
-    objects : Vec<Object2D>,
+    core: Rc<RefCell<Layer2DCore>>,
+    components: Vec<Rc<RefCell<Component<Layer2DCore>>>>,
+    objects: Vec<Object2D>,
 }
 
 impl<TComp> ObjectSystem<Layer2DCore, TComp> for Layer2D
-    where TComp : Component<Layer2DCore> + 'static
+where
+    TComp: Component<Layer2DCore> + 'static,
 {
-    fn core(&mut self) -> &mut Layer2DCore {
-        &mut self.core
+    fn core(&self) -> Rc<RefCell<Layer2DCore>> {
+        self.core.clone()
     }
 
-    fn components(&mut self) -> &mut Vec<Box<Component<Layer2DCore>>> {
+    fn components(&mut self) -> &mut Vec<Rc<RefCell<Component<Layer2DCore>>>> {
         &mut self.components
-    }
-
-    fn update_components(&mut self) {
-        for c in &mut self.components {
-            c.on_update(&mut self.core);
-        }
     }
 }
 
 impl<TComp, TObjComp> Layer<Layer2DCore, TComp, Object2DCore, TObjComp, Object2D> for Layer2D
-    where
-        TComp : Component<Layer2DCore> + 'static,
-        TObjComp : Component<Object2DCore> + 'static
+where
+    TComp: Component<Layer2DCore> + 'static,
+    TObjComp: Component<Object2DCore> + 'static,
 {
     fn objects(&mut self) -> &mut Vec<Object2D> {
         &mut self.objects
