@@ -10,8 +10,21 @@ use super::super::{
 
 };
 
-struct ObjectComponent;
-impl Component<Object2DCore> for ObjectComponent {}
+struct ObjectComponent {
+    count: i32,
+}
+
+impl ObjectComponent {
+    fn new() -> Self {
+        ObjectComponent { count: 0 }
+    }
+}
+impl Component<Object2DCore> for ObjectComponent {
+    fn on_update(&mut self, core: Rc<RefCell<Object2DCore>>) {
+        self.count += 1;
+        core.borrow_mut().count += 1;
+    }
+}
 
 struct LayerComponent;
 impl Component<Layer2DCore> for LayerComponent {}
@@ -37,8 +50,8 @@ fn updating() {
         {
             let mut object1 = Object2D::new();
             {
-                let comp1 = ObjectComponent;
-                let comp2 = ObjectComponent;
+                let comp1 = ObjectComponent::new();
+                let comp2 = ObjectComponent::new();
                 object1.add_component(Rc::new(RefCell::new(comp1)));
                 object1.add_component(Rc::new(RefCell::new(comp2)));
             }
