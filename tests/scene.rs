@@ -1,6 +1,8 @@
+extern crate objectsystem_test;
+
 use std::{cell::RefCell, rc::Rc};
 
-use super::super::{
+use objectsystem_test::{
     object_system::{Component, HasComponent, Layer, Scene},
     scene::{self, SceneCore},
     system_2d::{

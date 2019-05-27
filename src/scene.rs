@@ -34,7 +34,7 @@ impl Scene {
         }
     }
 
-    crate fn update(&mut self) {
+    pub fn update(&mut self) {
         self.update_core();
         self.update_components();
         (self as &mut SceneInner<_, _, Layer2D, _, Object2D>).update_layers();
