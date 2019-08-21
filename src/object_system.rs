@@ -1,144 +1,175 @@
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::{RefCell}, rc::Rc};
 
-pub trait CoreSystem {
+pub trait Component<T> {
+    fn on_added(&mut self, _ : &mut T) {}
+    fn on_owner_added(&mut self, _ : &mut T) {}
+    fn on_update(&mut self, _ : &mut T) {}
+}
+
+
+pub struct Events<T> {
+    on_added_event : Option<Box<Fn(&mut T)>>,
+    on_update_event : Option<Box<Fn(&mut T)>>,
+}
+
+impl<T> Events<T> {
+    pub fn on_added_event(f : Box<Fn(&mut T)>) -> Events<T> {
+        Events {
+            on_added_event : Some(f),
+            on_update_event : None,
+        }
+    }
+
+    pub fn on_update_event(f : Box<Fn(&mut T)>) -> Events<T> {
+        Events {
+            on_update_event : Some(f),
+            on_added_event : None,
+        }
+    }
+}
+
+impl<T> Component<T> for Events<T> {
+    fn on_added(&mut self, owner : &mut T) {
+        self.on_added_event.iter().for_each(|f| f(owner));
+    }
+
+    fn on_update(&mut self, owner : &mut T) {
+        self.on_update_event.iter().for_each(|f| f(owner));
+    }
+}
+
+pub trait ComponentSystem<T> {
+    fn add_component(&mut self, component: Rc<RefCell<Component<T>>>);
+}
+
+impl<T> ComponentSystem<T> {
+    pub fn add_component_static<U>(&mut self, component : U)
+        where U : 'static + Component<T>
+    {
+        self.add_component(Rc::new(RefCell::new(component)));
+    }
+}
+
+pub struct Components<T> {
+    components : Vec<Rc<RefCell<Component<T>>>>,
+}
+
+impl<T> Default for Components<T> {
+    fn default() -> Self {
+        Components {
+            components : Vec::new(),
+        }
+    }
+}
+
+impl<T> Components<T> {
+    crate fn add_component(&mut self, component: Rc<RefCell<Component<T>>>) {
+        self.components.push(component.clone());
+    }
+}
+
+pub trait GameObject<T> {
+    fn object_mut(&mut self) -> &mut T;
     fn update(&mut self);
 }
 
-pub trait Component<T> {
-    fn on_update(&mut self, _core: Rc<RefCell<T>>) {}
+mod sys {
+    crate enum AltseedObject2DImpl{}
+    // extern {
+        // crate fn object2d_create() -> *mut AltseedObject2DImpl;
+        // crate fn object2d_free(obj: *mut AltseedObject2DImpl);
+    // }
 }
 
-pub trait HasComponent<TCore>
-where
-    TCore: CoreSystem,
-{
-    fn core(&self) -> Rc<RefCell<TCore>>;
-    fn components(&mut self) -> &mut Vec<Rc<RefCell<Component<TCore>>>>;
-
-    fn add_component(&mut self, component: Rc<RefCell<Component<TCore>>>) {
-        self.components().push(component);
-    }
+pub struct Object2D {
+    // crate raw : *mut sys::AltseedObject2DImpl,
 }
 
-crate trait HasComponentInner<TCore>: HasComponent<TCore>
-where
-    TCore: CoreSystem,
-{
-    fn update_core(&self) {
-        self.core().borrow_mut().update();
-    }
-
-    fn update_components(&mut self) {
-        let core = self.core();
-        for c in self.components() {
-            c.borrow_mut().on_update(core.clone());
+impl Default for Object2D {
+    fn default() -> Self {
+        Object2D {
+            // raw : sys::object2d_create(),
         }
     }
 }
 
-impl<T, TCore> HasComponentInner<TCore> for T
-where
-    T: HasComponent<TCore>,
-    TCore: CoreSystem,
-{
-}
-
-pub trait Object {}
-
-crate trait ObjectInner<TCore>: Object + HasComponentInner<TCore>
-where
-    TCore: CoreSystem,
-{
-    fn update(&mut self) {
-        self.update_core();
-        self.update_components();
+impl Drop for Object2D {
+    fn drop(&mut self) {
+        // sys::object2d_free(&mut self.raw);
     }
 }
 
-impl<T, TCore> ObjectInner<TCore> for T
-where
-    T: Object + HasComponentInner<TCore>,
-    TCore: CoreSystem,
-{
+#[macro_export]
+macro_rules! impl_object2d {
+    ( @ $name:ident < $( $N:ident $(: $b0:ident $(+$b:ident)* )? ),* > { $($result:tt)* }) => (
+        struct $name {
+            $($result)*
+            object2d : Object2D,
+            components : Components<Self>,
+        }
+
+        impl < $( $N $(: $b0 $(+$b)* )? ),* > ComponentSystem<Self> for $name < $( $N ),* > {
+            fn add_component(&mut self, component : Rc<RefCell<Component<Self>>>) {
+                self.components.add_component(component.clone());
+                component.borrow_mut().on_added(self);
+            }
+        }
+
+        impl < $( $N $(: $b0 $(+$b)* )? ),* > GameObject<Object2D> for $name < $( $N ),* > {
+            fn object_mut(&mut self) -> &mut Object2D {
+                &mut self.object2d
+            }
+
+            fn update(&mut self) {
+                for c in self.components.components.clone() {
+                    c.borrow_mut().on_update(self);
+                }
+            }
+        }
+    );
+    ( $name:ident { $( $param:ident : $type:ty ),* $(,)* } ) => (
+        impl_object2d!(@ $name < > { $($param : $type,)* });
+    );
+    ( $name:ident ) => (
+        impl_object2d!(@ $name < > { } );
+    );
 }
 
-pub trait Layer<TObj>
-where
-    TObj: Object + 'static,
-{
-    fn objects(&mut self) -> &mut Vec<Box<TObj>>;
-
-    fn add_object(&mut self, object: TObj) {
-        self.objects().push(Box::new(object));
+impl_object2d! (
+    EmptyObject2D {
+        name : String
     }
+);
+
+fn test() {
+    // let a = EmptyObject2D;
 }
 
-crate trait LayerInner<TCore, TObjCore, TObj>: Layer<TObj> + HasComponentInner<TCore>
-where
-    TCore: CoreSystem,
-    TObjCore: CoreSystem,
-    TObj: ObjectInner<TObjCore> + 'static,
-{
-    fn update_objects(&mut self) {
-        let objects = self.objects();
-        for object in objects {
-            object.update();
+pub struct Layer2D {
+    objects : Vec<Rc<RefCell<GameObject<Object2D>>>>,
+}
+
+impl Layer2D {
+    pub fn new() -> Self {
+        Layer2D {
+            objects : Vec::new(),
         }
     }
 
-    fn update(&mut self) {
-        self.update_core();
-        self.update_components();
-        self.update_objects();
-    }
+    // crate fn update(&mut self) {
+    //     for c in self.components.components.clone() {
+    //         c.borrow_mut().on_update(self);
+    //     }
+
+    //     for o in self.objects.clone() {
+    //         o.borrow_mut().update();
+    //     }
+    // }
 }
 
-impl<T, TCore, TObjCore, TObj> LayerInner<TCore, TObjCore, TObj> for T
-where
-    T: Layer<TObj> + HasComponentInner<TCore>,
-    TCore: CoreSystem,
-    TObjCore: CoreSystem,
-    TObj: ObjectInner<TObjCore> + 'static,
-{
-}
-
-pub trait Scene<TLayer, TObj>
-where
-    TLayer: Layer<TObj>,
-    TObj: Object + 'static,
-{
-    fn layers(&mut self) -> &mut Vec<Box<TLayer>>;
-
-    fn add_layer(&mut self, layer: TLayer) {
-        self.layers().push(Box::new(layer));
-    }
-}
-
-crate trait SceneInner<TCore, TLyCore, TLayer, TObjCore, TObj>:
-    Scene<TLayer, TObj> + HasComponentInner<TCore>
-where
-    TCore: CoreSystem,
-    TLyCore: CoreSystem,
-    TLayer: LayerInner<TLyCore, TObjCore, TObj>,
-    TObjCore: CoreSystem,
-    TObj: ObjectInner<TObjCore> + 'static,
-{
-    fn update_layers(&mut self) {
-        let layers = self.layers();
-        for layer in layers {
-            layer.update();
-        }
-    }
-}
-
-impl<TCore, TLyCore, TLayer, TObjCore, TObj, T> SceneInner<TCore, TLyCore, TLayer, TObjCore, TObj>
-    for T
-where
-    T: Scene<TLayer, TObj> + HasComponentInner<TCore>,
-    TCore: CoreSystem,
-    TLyCore: CoreSystem,
-    TLayer: LayerInner<TLyCore, TObjCore, TObj>,
-    TObjCore: CoreSystem,
-    TObj: ObjectInner<TObjCore> + 'static,
-{
-}
+// impl ComponentSystem<Self> for Layer2D {
+//     fn add_component(&mut self, component : Rc<RefCell<Component<Self>>>) {
+//         self.components.add_component(component.clone());
+//         component.borrow_mut().on_added(self);
+//     }
+// }
